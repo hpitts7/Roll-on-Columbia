@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Columbia Basin Map</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        #map { width: 100%; height: 70vh; }
+        .mapboxgl-popup-content { font-size: 14px; }
+        #map-title { position: absolute; top: 20px; left: 20px; background-color: rgba(255, 255, 255, 0.7); padding: 15px; font-size: 24px; font-weight: bold; border-radius: 5px; z-index: 1; }
+        #legend { position: absolute; top: 80px; left: 20px; background-color: rgba(255, 255, 255, 0.7); padding: 10px; font-size: 14px; border-radius: 5px; z-index: 1; width: 200px; }
+        #legend strong { display: block; margin-bottom: 10px; }
+        #toggle-stream-order { margin-top: 10px; cursor: pointer; padding: 8px; background-color: rgba(255, 85, 85, 0.7); color: white; border-radius: 5px; font-size: 14px; }
+        #slider-container { width: 100%; background-color: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 5px; text-align: center; margin-top: 20px; }
+        #slider-container .slider-labels { display: flex; justify-content: space-between; font-size: 12px; width: 100%; margin-top: 5px; }
+        #columbia-info { background-color: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 5px; text-align: left; font-size: 14px; margin-top: 20px; }
+        #spotify-player { width: 80%; background-color: rgba(255, 255, 255, 0.9); padding: 10px; border-radius: 5px; text-align: center; font-size: 14px; margin: 20px auto 10px auto; }
+        iframe { width: 100%; height: 120px; border-radius: 12px; border: none; }
+        #time-slider { width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="map-title">Roll on Columbia, Roll On</div>
+    <div id="legend">
+        <strong>Legend</strong><br>
+        <div id="poi-list"></div>
+        <hr>
+        <strong>Columbia Basin Area:</strong> <span id="basin-area">Calculating...</span> km²
+        <button id="toggle-stream-order">Toggle Stream Order Visualization</button>
+    </div>
+    <div id="map"></div>
+    <div id="slider-container">
+        <label for="time-slider">Select Point of Interest:</label>
+        <input type="range" id="time-slider" min="0" step="1">
+        <div class="slider-labels" id="slider-labels"></div>
+    </div>
+    <div id="columbia-info">
+        <strong>Explore the Columbia Basin!</strong>
+
+        <p>Use the slider bar above to cycle through various cultural and sacred sites, cultural institutions, management/governance locations, and significant confluences within the Columbia River Basin! Click on each marker for more information- links are included for each site as well. Just copy, paste, and keep exploring!</p>
+
+
+        <strong>About the Columbia River and its Faulty Management:</strong>
+        <p>The Columbia River Treaty was signed in 1964 by representatives of Canada and the US. It was established separate to the existing International Joint Commission, which is a river basin organization that manages the rest of our transboundary waters, so primarily the Great Lakes. (Cosens, 2016). As the CRT approached the end of its mandated tenure, operating entities began preparing for a negotiation or modernization process. This multi-year process began in 2009 with technical studies, and formal review began in 2010. The US Entity for implementation of the CRT also initiated a “Sovereign Review Team” to engage state and Tribal governments in the process– this engagement, though extensive, was also arguably procedurally limited (Bell, 2015).</p>
+
+<p>As modernization became the dominating rhetoric around this process rather than re-negotiation, water leaders informally shared their opinions that a formal “re-negotiation” was likely avoided due to expected passage hurdles within the US Congress. However, an Agreement in Principle was reached at the end of 2024, prior to the Trump Administration’s current tenure. It famously elevated the desired 3rd leg to the stool, which added ecological concerns to the existing two legs: hydropower generation and flood mitigation.</p>
+
+<p>Though this third leg has been added, it's still not held to the same mandated standards as the other two, nor have they built in mechanisms that adequately increase the institutional capacity of the CRT across the entire basin to implement ecological management effectively. Two new groups were proposed, the Joint Ecological Body or JEB, which will be managed and led by Tribes and First Nations; and the Kootenai Working Group. As noted by Jim Heffernan, a well-established and highly respected policy analyst in the Basin with the Columbia River Inter-Tribal Fish Commission, Tribes have been “fostering a culture of abundant salmon since time immemorial” (Heffernan, n.d.).</p>
+
+<p>Furthermore, scholars have argued that the severe decline in anadromous fish populations (including, but not limited to salmon species) is not only linked to an exclusion of diverse values, but also a refusal to consider “how sociopolitical histories and lifeways underpin stakeholders’ divergent objectives (Cosens, 2016; Ebel & Ortman, 2024). These barriers to ‘good governance’ will likely continue to exacerbate not only fish decline, but also the continued cultural violence experienced by Indigenous peoples- just as Heffernan suggests, the two cannot be separated, and are inherently and intricately intertwined at an ontological level.</p>
+
+<p>The destruction of Celilo Falls, a loss of unimaginable magnitude that continues to reverberate throughout the region, succinctly elucidates the sheer lack of meaningful consideration of Indigenous peoples’ lifeways, and I’d argue intentionally subjugates their legal and rightful sovereignty. Though it stood for over 11,000 years as a sacred site, it only took four hours to be submerged with the construction of the Dalles Dam (Friedenwald-Fishman, 2021). In 1946, the Bureau of Indian Affairs Commission also noted the importance of the site (albeit in economic terms) by recording the volume of fish consumed and sold by Indigenous populations. This included “2.5 million pounds of salmon and steelhead, with a wholesale value of about $375 thousand” (Pinkham, 2007). Reports published prior to the construction of the dam also emphasized the economic benefits to the Tribes in the region, and largely ignored the clause in Tribal fishing rights that included access to their “usual and accustomed places” (Mott, 2024).</p>
+
+<p>Given the systemic exclusion of Indigenous voices, I wanted to create a map that highlights the importance of cultural sites and salmon operations in the basin, while emphasizing the new third leg of the treaty/stool. I will be including this entire sub-section below the map to provide additional context, and to engage in the process of writing and mapping as noted by Kelly et al (2024). Kelly states that “Writing and mapmaking were mutually constitutive and necessary components to addressing the question at hand.” (2024). This inclusion of the review on my map is a small step in that direction.</p>
+
+<p><em>References</em></p>
+
+<p style="text-indent: -30px; padding-left: 30px;">Bell, D. A. (2015). Columbia river treaty renewal and sovereign tribal authority under the Stevens Treaty right-to-fish clause. Pub. Land & Resources L. Rev., 36, 269.</p>
+
+<p style="text-indent: -30px; padding-left: 30px;">Cosens, B. (2016). The Columbia River Treaty: An opportunity for modernization of basin governance. Colorado Natural Resources, Energy & Environmental Law Review. https://digitalcommons.law.uidaho.edu/cgi/viewcontent.cgi?article=1008&context=faculty_scholarship</p>
+
+<p style="text-indent: -30px; padding-left: 30px;">Ebel, S. A., & Ortman, B. (2024). How Sociopolitical Histories and Lifeways Impact the Formation of ‘Good Governance’ in the Restoration of Anadromous Fish in the Columbia River Basin. Society & Natural Resources, 37(6), 899–918. https://doi.org/10.1080/08941920.2024.2310239</p>
+
+<p style="text-indent: -30px; padding-left: 30px;">Fredlund, D. (2007). The corps of engineers and Celilo Falls: Facing the past, looking to the future. Oregon Historical Quarterly, 108(4), 688–697.</p>
+
+<p style="text-indent: -30px; padding-left: 30px;">Friedenwald-Fishman, M. L. (2021). Stories from the Flood: Narratives of Celilo Falls, 1805-2021. https://scarab.bates.edu/honorstheses/366/</p>
+
+<p style="text-indent: -30px; padding-left: 30px;">Heffernan, J. (n.d.). Tribal Perspectives on the Columbia River Treaty (p. 34). Columbia River Inter-Tribal Fish Commission.</p>
+
+<p style="text-indent: -30px; padding-left: 30px;">Kelly, M., Lally, Nick, & Nicholson, P. J. (2023). On Art and Experimentation as Geographical Practice. GeoHumanities, 9(2), 380–410. https://doi.org/10.1080/2373566X.2023.2187313</p>
+
+<p style="text-indent: -30px; padding-left: 30px;">Mott, C. (2024). “The Last Victims of the Indian War”: Celilo Falls, the Dalles Dam, and Infrastructural Colonization. Annals of the American Association of Geographers, 114(1), 91–106. https://doi.org/10.1080/24694452.2023.2261522</p>
+
+<p style="text-indent: -30px; padding-left: 30px;">Pinkham, A. V. (2007). Childhood memories of fishing at Celilo Falls. Oregon Historical Quarterly, 108(4), 586–595. https://www.jstor.org/stable/20615798</p>
+
+<p style="text-indent: -30px; padding-left: 30px;">US Army Corps of Engineers. (2006). Celilo Falls, 1957. In Wikipedia. https://en.wikipedia.org/w/index.php?title=Celilo_Falls&oldid=1277023664</p>
+
+    </div>
+
+    <!-- Spotify embed code -->
+    <div id="spotify-player">
+        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/4TigadiqmHjwBfbBtJqUp1?utm_source=generator" width="100%" height="120" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    </div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiaHBpdHRzNyIsImEiOiJjbTZ6ZGwwc3owM29mMmxwdDh5d3hlNzJjIn0.ZTOjpLgkl842mbe9k7ygMg';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/hpitts7/cm7nvr5tj00bb01sre05h7q9k',
+            center: [-119, 46.5],
+            zoom: 6
+        });
+
+        const pointsOfInterest = [
+    { name: 'Kootenai River Confluence', coordinates: [-117.65284633029695, 49.31584037980683], description: 'This major tributary within Canada serves as critical habitat for numerous species, including several threatened and rare native fish species. Resource: https://www.americanrivers.org/river/kootenai-river/' },
+  { name: 'CRTWGES', coordinates: [-117.40328393851289, 47.66878952140009], description: 'This semi-annual Symposium functions as an unofficial public engagement arm of the Columbia River Treaty, as it gather leading scholars, community leaders, and water managers to discuss cutting-edge issues with an eye toward equitable Treaty modernization. Resources: https://columbiabasingovernance.org/' },
+  { name: 'Kettle Falls', coordinates: [-118.0558, 48.6107], description: 'Yet another flooded Indigenous fishery and cultural gathering space, which eyewitness reports suggest could have been larger than Celilo Falls. It was tragically flooded by the Grand Coulee Dam in 1940. Resources: https://www.nwcouncil.org/reports/columbia-river-history/kettlefalls/' },
+  { name: 'Snake River Confluence', coordinates: [-119.03950170241083, 46.198040183839005], description: 'A site of importance for several groups of Indigenous peoples including the Yakamas and Wanapams, who greeted the Lewis and Clarke expedition here in 1805. It is now located within Sacagawea State Park. Resources: https://www.nps.gov/places/snake-river-confluence.htm' },
+  { name: 'Wanapum Heritage Center', coordinates: [-119.89927580977813, 46.66117585211545], description: 'Located at the site of a dam-flooded Wanapum village near Priest Rapids in WA, USA. Admission is free. Wapanum means “river people.” Resource: https://wanapum.org/' },
+  { name: 'Tamástslikt Cultural Institute', coordinates: [-118.66332543446049, 45.654398150972355], description: 'The only museum on the Oregon Trail to tell the story of western expansion from a Tribal and Indigenous perspective, this world-class institute is located on the Umatilla Indian Reservation. Resources: https://www.tamastslikt.org/' },
+  { name: 'Celilo Falls', coordinates: [-120.97792, 45.64945], description: 'Celilo Falls was an Indigenous fishery and cultural gathering space for over 11,000 years. It was inundated with the construction of the Dalles Dam in 1957. It only took four hours fo be completely submerged and is an unfathomable loss. Resources: https://critfc.org/salmon-culture/tribal-salmon-culture/celilo-falls/' },
+  { name: 'Bonneville Dam', coordinates: [-121.9471, 45.6391], description: 'It has been declared a National Historic Landmark, despite being the first federal lock and dam in the Columbia Basin, which initiated the widespread decline of culturally significant and sacred fish populations. Resources: https://www.nwp.usace.army.mil/bonneville/' },
+  { name: 'Columbia Gorge Museum', coordinates: [-121.89918579027557, 45.685614549162786], description: 'Opened in 1995, this institution focuses primarily on tangentially related stories and exhibitions regarding the region as a whole. The focus is not necessarily on the Columbia River, the Gorge, or its original inhabitants. Resources: https://www.columbiagorgemuseum.org/about' },
+  { name: 'Multnomah Falls', coordinates: [-122.1158, 45.5762], description: 'Multnomah Falls is particularly sacred to the Chinookan, Multnomah, and Wasco peoples, among many others. The name’s etymology has been suggested to mean “toward the river.” Resources: https://www.gatheringthestories.org/2013/10/21/a-legend-of-multnomah-falls-a-wasco-legend/' },
+  { name: 'Columbia Gorge Discovery Center & Museum', coordinates: [-121.21043920376775, 45.65448046394279], description: 'This site serves as the “official” interpretive center of the Columbia River Gorge National Scenic Area. Located on the site of one of the oldest inhabited places in North America, they still charge a “modest” admission fee for the privilege… Resources: https://www.nps.gov/places/000/columbia-gorge-discovery-center-museum.htm' },
+  { name: 'CRITFC', coordinates: [-122.6578510558806, 45.53100565028473], description: 'The mission of CRITFC is to “coordinate management policy and provides fisheries technical services for the Yakama, Warm Springs, Umatilla, and Nez Perce tribes.” They are guided by the principle of “Wy-Kan-Ush-Mi Wa-Kish-Wit” (Spirit of the Salmon). Resources: https://critfc.org/' },
+  { name: 'Willamette River Confluence', coordinates: [-122.76420723862655, 45.65261281128523], description: 'Two unnamed Indigenous people told Lewis and Clark of the “Mult-no’-mah” River which flowed into the Columbia on the “South Side.” This is now known as the Willamette River, which they marked on a hand drawn map. Resource: https://www.nps.gov/places/willamette-river-confluence.htm' },
+  { name: 'Chachalu Museum', coordinates: [-123.60822297682463, 45.061901227188066], description: 'The Yamhill Kalapuya referred to this site as Chachalu, which means “place of the burnt timbers.” This center tells the stories of the Confederated Tribes of the Grand Ronde Community of Oregon. Resources: https://www.chachalu.org/' }
+];
+
+        function updateLegend() {
+            document.getElementById("poi-list").innerHTML = pointsOfInterest.map(poi => `● ${poi.name}`).join("<br>");
+        }
+
+        function calculateBasinArea() {
+            fetch('columbia_basin.geojson')
+                .then(response => response.json())
+                .then(data => {
+                    const areaSqMeters = turf.area(data);
+                    const areaSqKm = (areaSqMeters / 1e6).toFixed(2);
+                    document.getElementById('basin-area').innerText = `${areaSqKm}`;
+                    map.addSource('basin-outline', { type: 'geojson', data });
+                    map.addLayer({
+                        id: 'basin-outline',
+                        type: 'line',
+                        source: 'basin-outline',
+                        paint: {
+                            'line-color': '#FA8072',
+                            'line-width': 2
+                        }
+                    });
+                });
+        }
+
+        function addMarkers() {
+            pointsOfInterest.forEach(point => {
+                const popup = new mapboxgl.Popup({ closeOnClick: false })
+                    .setLngLat(point.coordinates)
+                    .setHTML(`<strong>${point.name}</strong><br><p>${point.description}</p>`);
+
+                new mapboxgl.Marker({ color: '#6A8D92' })
+                    .setLngLat(point.coordinates)
+                    .setPopup(popup)
+                    .addTo(map);
+            });
+        }
+
+        function createD3Slider() {
+            const slider = document.getElementById("time-slider");
+            const sliderLabel = document.getElementById("slider-labels");
+            slider.max = pointsOfInterest.length - 1;
+            slider.value = 0;
+            sliderLabel.innerHTML = pointsOfInterest.map((poi) => {
+                return `<span style="width: 100%; text-align: center; display: inline-block;">${poi.name}</span>`;
+            }).join('');
+
+            slider.addEventListener("input", (event) => {
+                const index = event.target.value;
+                const poi = pointsOfInterest[index];
+                map.flyTo({ center: poi.coordinates, zoom: 8 });
+                poi.popup.addTo(map); 
+            });
+        }
+
+        let streamOrderVisible = true; // Default to visible
+        let animationInProgress = false;
+
+        function toggleStreamOrder() {
+            streamOrderVisible = !streamOrderVisible;
+            const layer = map.getLayer('flow-lines');
+            if (streamOrderVisible) {
+                map.setLayoutProperty(layer.id, 'visibility', 'visible');
+            } else {
+                map.setLayoutProperty(layer.id, 'visibility', 'none');
+            }
+        }
+
+        function addColumbiaLines() {
+            fetch('columbia_lines_2.json')
+                .then(response => response.json())
+                .then(flowData => {
+                    map.addSource('flow-lines', { type: 'geojson', data: flowData });
+
+                    map.addLayer({
+                        id: 'flow-lines',
+                        type: 'line',
+                        source: 'flow-lines',
+                        paint: {
+                            'line-color': '#FFEBEF',
+                            'line-width': 0.5,
+                            'line-opacity': 0.8
+                        }
+                    });
+
+                    map.setPaintProperty('flow-lines', 'line-color', [
+                        'interpolate', ['linear'], ['get', 'ORD_STRA'],
+                        1, '#FFEBEF', 2, '#FFC1C9', 3, '#FF9AA2',
+                        4, '#FF707F', 5, '#FF4D63', 6, '#FF2B4A', 7, '#FF0F34'
+                    ]);
+                    map.setPaintProperty('flow-lines', 'line-width', [
+                        'interpolate', ['linear'], ['get', 'ORD_STRA'],
+                        1, 0.5, 2, 1, 3, 1.5, 4, 2, 5, 3, 6, 4, 7, 6
+                    ]);
+                })
+                .catch(error => console.error("Error loading GeoJSON:", error));
+        }
+
+        map.on('load', () => {
+            addMarkers();
+            createD3Slider();
+            updateLegend();
+            calculateBasinArea();
+            addColumbiaLines();
+        });
+
+        document.getElementById('toggle-stream-order').addEventListener('click', toggleStreamOrder);
+    </script>
+</body>
+</html>
